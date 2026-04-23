@@ -244,7 +244,7 @@ def get_column_names(df):
 # ─────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("## ⚡ Greek RES Forecast")
+    st.markdown("## Greek RES Forecast")
     st.markdown('<div class="sidebar-logo">GREECE · 2024–2025 · ENTSO-E</div>',
                 unsafe_allow_html=True)
     st.markdown("---")
@@ -291,8 +291,8 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     <div style='font-size:11px; color:#3a4560; text-align:center'>
-    Built as part of an energy portfolio project<br>
-    targeting energy management roles in the Middle East
+    Build as a very first attempt<br>
+    to create an interactive dashboard forecasting RES generation
     </div>
     """, unsafe_allow_html=True)
 
