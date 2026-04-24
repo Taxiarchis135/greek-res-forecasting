@@ -14,8 +14,8 @@ Pulling data from two public free APIs:
 
 ### Phase 3 - Day-ahead Forecasting Model
 Two distinct periods:
-01/2024 - 09/2024 --> training period
-10/2024 - 12/2024 --> forecasting/testing period
+01/2024 - 09/2025 --> training period
+10/2025 - 12/2025 --> forecasting/testing period
 
 *Three models to evaluate solar and wind forecasts:*
 
