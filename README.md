@@ -75,6 +75,6 @@ streamlit run dashboard.py
 ## Key Insights
 - A forecast error of 507MW for total RES generation represents direct imbalance exposure.
 - Greek duck curve when solar generation peaks, dropping prices to ~55 €/MWh and spike to ~183 €/MWh during evening hours. Intraday spread of ~128 €/MWh, highliting the value of flexible assets (storage and DR)
-- Further installation of RES capacity without the necessary storage capacity will lead to further price cannibalization, endangering further investments for energy transition
+- Further installation of RES capacity without the necessary storage capacity and flexible assets will lead to further price cannibalization, endangering further investments for energy transition
 
 *This project is for portfolio and educational purposes. All data is sourced from publicly available platforms.*
