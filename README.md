@@ -28,7 +28,6 @@ Model | Solar Mean Error | Wind Mean Error
 - Seasonal Naive (my baseline model) was completey off; expected
 - Linear regression was a significant improvement for both technologies
 - Random Forest improved **Solar** a bit further (total of 48% compared to Baseline) but received worst result for **Wind**
-- 
 
 ### Phase 4 - DAM Price Correlation & Merit order analysis
 Day Ahead Prices were pulled from ENTSO-e and not HENEX. They were merged with generation data to quantify the merit order effect
