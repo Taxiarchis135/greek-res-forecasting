@@ -1,4 +1,4 @@
-# greek-res-forecasting
+# Greek RES Forecasting model
 ## Methodology
 
 ### Phase 1 - Data collection
