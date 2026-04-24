@@ -281,10 +281,10 @@ with st.sidebar:
     st.markdown("### Data Sources")
     st.markdown("""
     <div style='font-size:12px; color:#6b7a99; line-height:1.8'>
-    📡 <b style='color:#a8b4cc'>Generation:</b> ENTSO-E<br>
-    🌤️ <b style='color:#a8b4cc'>Weather:</b> Open-Meteo<br>
-    💶 <b style='color:#a8b4cc'>Prices:</b> ENTSO-E / HENEX<br>
-    🤖 <b style='color:#a8b4cc'>Models:</b> RF + Linear Reg
+    <b style='color:#a8b4cc'>Generation:</b> ENTSO-E<br>
+    <b style='color:#a8b4cc'>Weather:</b> Open-Meteo<br>
+    <b style='color:#a8b4cc'>Prices:</b> ENTSO-E / HENEX<br>
+    <b style='color:#a8b4cc'>Models:</b> RF + Linear Reg
     </div>
     """, unsafe_allow_html=True)
 
@@ -318,7 +318,7 @@ if page == "Overview":
     st.markdown("# Greek RES Day-Ahead Forecasting")
     st.markdown(
         "<p style='color:#6b7a99; font-size:15px; margin-top:-12px'>"
-        "Solar & Wind generation forecasting for the Greek bidding zone (BZN|GR) "
+        "Solar & Wind generation forecasting for Greece "
         "with HENEX day-ahead price correlation analysis</p>",
         unsafe_allow_html=True
     )
@@ -558,8 +558,8 @@ elif page == "Merit Order Analysis":
     st.markdown("# Merit Order Effect")
     st.markdown(
         "<p style='color:#6b7a99; font-size:15px; margin-top:-12px'>"
-        "Higher RES generation suppresses day-ahead prices as zero-marginal-cost "
-        "renewables displace gas-fired generation from the supply curve</p>",
+        "Higher RES generation suppresses day-ahead prices as zero-cost "
+        "renewables displace thermal generation from the system</p>",
         unsafe_allow_html=True
     )
 
