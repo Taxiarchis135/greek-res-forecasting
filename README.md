@@ -53,28 +53,23 @@ Day Ahead Prices were pulled from ENTSO-e and not HENEX. They were merged with g
 
 ## How to run locally
 **1. Clone the repository**
-bash
 git clone https://github.com/Taxiarchis135/greek-res-forecasting.git
 cd greek-res-forecasting
 
 **2. Install dependencies**
-bash
 pip install -r requirements.txt
 
 **3. Set your ENTSO-E API key**
 
 Register for free at [transparency.entsoe.eu](https://transparency.entsoe.eu) and set your token *(you have to send them an email with the headline "Restful API access", asking to enable the option for your account to generate a token)*:
-bash
 export ENTSOE_API_KEY="your_token_here"
 
 **4. Run data collection**
-bash
 python phase1_data_collection.py
 python phase1b_wind_data.py
 python phase4a_price_collection.py
 
 **5. Launch the dashboard**
-bash
 streamlit run dashboard.py
 
 ## Key Insights
