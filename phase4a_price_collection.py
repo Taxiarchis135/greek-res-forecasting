@@ -20,7 +20,7 @@ from entsoe import EntsoePandasClient
 # CONFIGURATION
 # ─────────────────────────────────────────────
 
-ENTSOE_API_KEY = os.getenv("ENTSOE_API_KEY", "YOUR_API_KEY_HERE")
+ENTSOE_API_KEY = os.getenv("ENTSOE_API_KEY", "34d8e1e0-2252-47f0-98d1-ab6349418d08")
 
 START_DATE   = "2024-01-01"
 END_DATE     = "2025-12-31"
