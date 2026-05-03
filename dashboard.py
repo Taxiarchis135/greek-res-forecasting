@@ -252,6 +252,7 @@ with st.sidebar:
     st.markdown("### Navigation")
     page = st.radio("", [
         "Overview",
+        "Tomorrow's Forecast",
         "Forecast vs Actual",
         "Merit Order Analysis",
         "Negative Prices",
@@ -880,3 +881,240 @@ elif page == "Model Performance":
     ({total_naive_mae:.0f} → {total_best_mae:.0f} MW), directly reducing imbalance
     cost exposure for RES producers bidding into the HENEX day-ahead market.
     </div>""", unsafe_allow_html=True)
+
+elif page == "Tomorrow's Forecast":
+
+    st.markdown("# Tomorrow's Day-Ahead Forecast")
+    st.markdown(
+        "<p style='color:#6b7a99; font-size:15px; margin-top:-12px'>"
+        "24-hour generation forecast for the Greek bidding zone — updated daily at 07:00 UTC "
+        "using Random Forest (solar) and Linear Regression (wind)</p>",
+        unsafe_allow_html=True
+    )
+
+    # Load forecast data
+    forecast_path = './data/forecast_tomorrow.csv'
+
+    try:
+        fcast = pd.read_csv(forecast_path, index_col='datetime_utc', parse_dates=True)
+        if fcast.index.tz is None:
+            fcast.index = fcast.index.tz_localize('UTC')
+        fcast_athens = fcast.copy()
+        fcast_athens.index = fcast.index.tz_convert('Europe/Athens')
+
+        forecast_date = fcast.index[0].date()
+        generated_at  = pd.Timestamp.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+
+        st.markdown(f"""
+        <div style='background:#111827; border:1px solid #1e3a5f; border-radius:8px;
+                    padding:12px 20px; margin-bottom:20px; font-size:13px; color:#64748b'>
+            📅 <b style='color:#e2e8f0'>Forecast date:</b>
+            <span style='color:#00d4ff'>{forecast_date}</span>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            🕐 <b style='color:#e2e8f0'>Generated:</b>
+            <span style='color:#94a3b8'>{generated_at}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # KPI cards
+        peak_solar     = fcast['forecast_solar_MW'].max()
+        peak_solar_hr  = fcast_athens['forecast_solar_MW'].idxmax().strftime('%H:%M')
+        peak_wind      = fcast['forecast_wind_MW'].max()
+        peak_total     = fcast['forecast_total_MW'].max()
+        avg_solar      = fcast['forecast_solar_MW'].mean()
+        avg_cloud      = fcast['cloudcover_pct'].mean() if 'cloudcover_pct' in fcast.columns else 0
+
+        # Estimate price range using merit order relationship
+        # Based on our analysis: Very High RES = ~57 EUR/MWh, Very Low = ~132 EUR/MWh
+        peak_res_ratio = peak_total / 8000  # approx max RES capacity
+        est_min_price  = max(20, 132 - (peak_res_ratio * 75))
+        est_max_price  = 132
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{peak_solar:.0f}</div>
+                <div class="metric-label">Peak Solar (MW)</div>
+                <div class="metric-delta">at {peak_solar_hr} Athens</div>
+            </div>""", unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{peak_wind:.0f}</div>
+                <div class="metric-label">Peak Wind (MW)</div>
+                <div class="metric-delta">Onshore forecast</div>
+            </div>""", unsafe_allow_html=True)
+
+        with col3:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{peak_total:.0f}</div>
+                <div class="metric-label">Peak Total RES (MW)</div>
+                <div class="metric-delta">Combined forecast</div>
+            </div>""", unsafe_allow_html=True)
+
+        with col4:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{avg_cloud:.0f}%</div>
+                <div class="metric-label">Avg Cloud Cover</div>
+                <div class="metric-delta">Athens forecast</div>
+            </div>""", unsafe_allow_html=True)
+
+        with col5:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{est_min_price:.0f}–{est_max_price:.0f}</div>
+                <div class="metric-label">Est. Price Range</div>
+                <div class="metric-delta">EUR/MWh (merit order)</div>
+            </div>""", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Main forecast chart
+        st.markdown('<div class="section-header">Hourly Generation Forecast</div>',
+                    unsafe_allow_html=True)
+
+        hours_athens = fcast_athens.index.strftime('%H:%M')
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Bar(
+            x=list(range(24)),
+            y=fcast['forecast_solar_MW'].values,
+            name='Solar Forecast',
+            marker_color=COLORS['solar'],
+            opacity=0.85,
+        ))
+
+        fig.add_trace(go.Bar(
+            x=list(range(24)),
+            y=fcast['forecast_wind_MW'].values,
+            name='Wind Forecast',
+            marker_color=COLORS['wind'],
+            opacity=0.85,
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=list(range(24)),
+            y=fcast['forecast_total_MW'].values,
+            name='Total RES',
+            line=dict(color=COLORS['total'], width=2.5),
+            mode='lines+markers',
+            marker=dict(size=5),
+        ))
+
+        fig.update_layout(
+            **PLOT_THEME,
+            height=420,
+            barmode='stack',
+            title=dict(text=f'Day-Ahead Generation Forecast — {forecast_date} (UTC)',
+                       font=dict(size=14, color='#ffffff')),
+            xaxis=dict(
+                tickmode='array',
+                tickvals=list(range(24)),
+                ticktext=[f'{h:02d}:00' for h in range(24)],
+                title='Hour (UTC)',
+                gridcolor='#1e3a5f',
+                linecolor='#1e3a5f',
+                tickfont=dict(color='#94a3b8')
+            ),
+            yaxis=dict(
+                title='Generation (MW)',
+                gridcolor='#1e3a5f',
+                linecolor='#1e3a5f',
+                tickfont=dict(color='#94a3b8')
+            ),
+            hovermode='x unified',
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Weather drivers chart
+        st.markdown('<div class="section-header">Weather Inputs Driving the Forecast</div>',
+                    unsafe_allow_html=True)
+
+        fig2 = make_subplots(rows=1, cols=2,
+                              subplot_titles=['Irradiance Forecast (W/m²)',
+                                             'Cloud Cover Forecast (%)'])
+
+        fig2.add_trace(go.Scatter(
+            x=list(range(24)),
+            y=fcast['irradiance_Wm2'].values if 'irradiance_Wm2' in fcast.columns else [0]*24,
+            fill='tozeroy',
+            fillcolor='rgba(245,158,11,0.25)',
+            line=dict(color=COLORS['solar'], width=2),
+            name='Irradiance'), row=1, col=1)
+
+        fig2.add_trace(go.Bar(
+            x=list(range(24)),
+            y=fcast['cloudcover_pct'].values if 'cloudcover_pct' in fcast.columns else [0]*24,
+            marker_color='#334155',
+            name='Total Cloud Cover',
+            opacity=0.8), row=1, col=2)
+
+        fig2.add_trace(go.Bar(
+            x=list(range(24)),
+            y=fcast['cloudcover_low_pct'].values if 'cloudcover_low_pct' in fcast.columns else [0]*24,
+            marker_color=COLORS['price'],
+            name='Low Cloud Cover',
+            opacity=0.8), row=1, col=2)
+
+        fig2.update_layout(
+            **PLOT_THEME,
+            height=320,
+            showlegend=True,
+        )
+        fig2.update_xaxes(tickmode='array',
+                          tickvals=list(range(0, 24, 3)),
+                          ticktext=[f'{h:02d}:00' for h in range(0, 24, 3)],
+                          gridcolor='#1e3a5f', linecolor='#1e3a5f',
+                          tickfont=dict(color='#94a3b8'))
+        fig2.update_yaxes(gridcolor='#1e3a5f', linecolor='#1e3a5f',
+                          tickfont=dict(color='#94a3b8'))
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+        # Hourly forecast table
+        st.markdown('<div class="section-header">Hourly Forecast Table</div>',
+                    unsafe_allow_html=True)
+
+        table_df = pd.DataFrame({
+            'Hour (UTC)':        [f'{h:02d}:00' for h in range(24)],
+            'Hour (Athens)':     [f'{(h+3)%24:02d}:00' for h in range(24)],
+            'Solar (MW)':        fcast['forecast_solar_MW'].round(0).astype(int).values,
+            'Wind (MW)':         fcast['forecast_wind_MW'].round(0).astype(int).values,
+            'Total RES (MW)':    fcast['forecast_total_MW'].round(0).astype(int).values,
+            'Irradiance (W/m²)': fcast['irradiance_Wm2'].round(0).astype(int).values
+                                  if 'irradiance_Wm2' in fcast.columns
+                                  else [0]*24,
+            'Cloud Cover (%)':   fcast['cloudcover_pct'].round(0).astype(int).values
+                                  if 'cloudcover_pct' in fcast.columns
+                                  else [0]*24,
+        })
+        st.dataframe(table_df, use_container_width=True, hide_index=True)
+
+        # Insight box
+        high_solar_hours = (fcast['forecast_solar_MW'] > fcast['forecast_solar_MW'].max() * 0.7).sum()
+        st.markdown(f"""
+        <div class="insight-box">
+        Tomorrow's forecast shows peak solar generation of
+        <b style='color:#f59e0b'>{peak_solar:.0f} MW</b> at
+        <b style='color:#00d4ff'>{peak_solar_hr} Athens time</b>,
+        with <b style='color:#f59e0b'>{high_solar_hours} hours</b> above 70% of peak output.
+        Average cloud cover of <b style='color:#94a3b8'>{avg_cloud:.0f}%</b> is
+        {'expected to suppress solar output moderately — monitor actual vs forecast closely.' 
+         if avg_cloud > 40 
+         else 'low, suggesting reliable solar generation conditions.'}
+        Based on the merit order relationship, high RES output hours are estimated to see
+        prices in the <b style='color:#00d4ff'>{est_min_price:.0f}–{est_max_price:.0f} EUR/MWh</b> range.
+        </div>""", unsafe_allow_html=True)
+
+    except FileNotFoundError:
+        st.warning("No forecast file found. The daily automation runs at 07:00 UTC — "
+                   "check back after the next scheduled run or trigger it manually via GitHub Actions.")
+    except Exception as e:
+        st.error(f"Error loading forecast: {e}")

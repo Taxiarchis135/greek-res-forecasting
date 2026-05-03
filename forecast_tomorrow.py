@@ -281,6 +281,11 @@ def main():
     # 5. Generate forecasts
     solar_pred = np.clip(rf_solar.predict(X_tomorrow), 0, None)
     wind_pred  = np.clip(lr_wind.predict(scaler.transform(X_tomorrow)), 0, None)
+
+    # Force solar to zero during nighttime (irradiance < 10 W/m²)
+    irradiance_vals = weather_df['irradiance_Wm2'].values
+    solar_pred = np.where(irradiance_vals < 10, 0, solar_pred)
+
     total_pred = solar_pred + wind_pred
 
     # 6. Build output DataFrame
